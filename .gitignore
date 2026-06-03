@@ -149,6 +149,11 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+# Large model files
+*.gguf
+models/*.gguf
+models/Llama-*.gguf
+
 # pytype static type analyzer
 .pytype/
 
