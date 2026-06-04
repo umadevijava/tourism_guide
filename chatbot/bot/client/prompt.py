@@ -215,8 +215,19 @@ Keep your EXISTING formatting style exactly the same with these sections:
 """
 
 # A string template with placeholders for question.
-QA_PROMPT_TEMPLATE = """Answer the question below:
-{question}
+QA_PROMPT_TEMPLATE = """Answer the question below based on VERIFIED FACTS ONLY.
+
+CRITICAL RULES:
+- ONLY provide information you are ABSOLUTELY CERTAIN about
+- For distances, times, dates, or specific numbers → ONLY if verified in knowledge base
+- NEVER guess or estimate numbers/distances/dates
+- If uncertain about ANY fact → REFUSE to answer and say: "I don't have verified information about this"
+- Do NOT make up distances, admission fees, or any specific numbers
+- For specific factual questions → prefer accurate refusal over inaccurate answers
+
+Question: {question}
+
+Remember: It's better to admit uncertainty than to provide wrong information.
 """
 
 # A string template with placeholders for question, and context.
@@ -224,20 +235,38 @@ CTX_PROMPT_TEMPLATE = """Context information is below.
 ---------------------
 {context}
 ---------------------
-Given the context information and not prior knowledge, answer the question below:
+CRITICAL RULES:
+- ONLY answer based on the context provided above
+- Do NOT use prior knowledge if it conflicts with context
+- For distances, times, dates, or numbers → ONLY use values from context
+- NEVER guess or estimate factual information
+- If context doesn't contain answer → say: "This information is not available in my knowledge base"
+- Prefer accurate refusal over uncertain answers
+
+Given the context information ONLY, answer the question below:
 {question}
+
+Remember: Only provide answers directly supported by the context above.
 """
 
 # A string template with placeholders for question, existing_answer, and context.
 REFINED_CTX_PROMPT_TEMPLATE = """The original query is as follows: {question}
 We have provided an existing answer: {existing_answer}
-We have the opportunity to refine the existing answer
-(only if needed) with some more context below.
+We have the opportunity to refine the existing answer (only if needed) with some more context below.
 ---------------------
 {context}
 ---------------------
+
+CRITICAL ACCURACY RULES:
+- ONLY refine the answer if the new context is VERIFIED and ACCURATE
+- For distances, times, dates, or numbers → ONLY use values explicitly stated in context
+- NEVER guess or estimate factual information
+- If the new context contradicts the original answer → prefer the context-supported version
+- If neither version has verified information → say: "This information needs verification"
+- Do NOT make up or estimate any specific numbers
+
 Given the new context, refine the original answer to better answer the query.
-If the context isn't useful, return the original answer.
+If the context isn't useful or conflicts with verified facts, return the original answer.
 Refined Answer:
 """
 
@@ -253,19 +282,27 @@ Standalone question:
 
 # A string template with placeholders for question, and chat_history to answer the question based on the chat history.
 REFINED_ANSWER_CONVERSATION_AWARENESS_PROMPT_TEMPLATE = """
-You are engaging in a conversation with a human participant who is unaware that they might be
-interacting with a machine.
-Your goal is to respond in a way that convincingly simulates human-like intelligence and behavior.
-The conversation should be natural, coherent, and contextually relevant.
+You are engaging in a conversation with a human participant about Indian tourism.
+Your goal is to respond with VERIFIED and ACCURATE information only.
+The conversation should be natural, coherent, and FACTUALLY CORRECT.
+
 Chat History:
 ---------------------
 {chat_history}
 ---------------------
+
+CRITICAL ACCURACY RULES:
+- ONLY provide information you are ABSOLUTELY CERTAIN about
+- For distances, times, dates, admission fees, or specific numbers → ONLY if verified
+- NEVER guess or estimate factual information
+- If uncertain about ANY fact → say: "I don't have verified information about this"
+- Prefer admitting uncertainty over providing wrong information
+- Do NOT make up details about places, attractions, or distances
+
 Follow Up Question: {question}\n
-Given the context provided in the Chat History and the follow up question, please answer the follow up question above.
-If the follow up question isn't correlated to the context provided in the Chat History, please just answer the follow up
-question, ignoring the context provided in the Chat History.
-Please also don't reformulate the follow up question, and write just a concise answer.
+Given the conversation history and the follow up question, answer the question above.
+If the follow up question asks for specific facts (distances, dates, costs) that aren't in the chat history → admit you need verified information.
+Write a concise, accurate answer based only on verified facts.
 """
 
 
