@@ -20,7 +20,7 @@ export function ChatHeader({ onNewChat, disabled }: ChatHeaderProps) {
           </div>
           <div className="flex flex-col gap-0.5">
             <div className="flex items-center gap-2">
-              <h1 className="font-bold text-lg text-foreground tracking-tight">Tourism Guide</h1>
+              <h1 className="font-bold text-lg text-foreground tracking-tight">Tourism Guide AI</h1>
               <Globe className="h-4 w-4 text-navy/70" />
             </div>
             <p className="text-xs text-muted-foreground/80">Explore. Discover. Travel.</p>

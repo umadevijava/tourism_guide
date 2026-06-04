@@ -15,52 +15,41 @@ async def refine_question(
     llm: LamaCppClient, question: str, chat_history: ChatHistory, max_new_tokens: int = 128
 ) -> str:
     """
-    Refines the given question based on the chat history.
+    Returns the original question without modification.
 
     Args:
         llm (LlmClient): The language model client for conversation-related tasks.
         question (str): The original question.
         chat_history (List[Tuple[str, str]]): A list to store the conversation
-        history as tuples of questions and answers.
+        history (maintained for potential future use but NOT used to influence refinement).
         max_new_tokens (int, optional): The maximum number of tokens to generate in the answer.
             Defaults to 128.
 
     Returns:
-        str: The refined question.
+        str: The original question unchanged, ensuring focus on current user input.
+        
+    Notes:
+        The method now returns the question as-is to ensure the chatbot responds to what
+        the user actually asked without modification based on previous conversation context.
+        This prevents the model from misinterpreting the current question based on prior history.
     """
-
-    if chat_history:
-        logger.info("--- Refining the question based on the chat history... ---")
-
-        conversation_awareness_prompt = llm.generate_refined_question_conversation_awareness_prompt(
-            question, str(chat_history)
-        )
-
-        logger.info(f"--- Prompt:\n {conversation_awareness_prompt} \n---")
-
-        refined_question = await llm.async_generate_answer(conversation_awareness_prompt, max_new_tokens=max_new_tokens)
-
-        if llm.model_settings.reasoning:
-            refined_question = extract_content_after_reasoning(refined_question, llm.model_settings.reasoning_stop_tag)
-            if refined_question == "":
-                refined_question = question
-
-        logger.info(f"--- Refined Question: {refined_question} ---")
-
-        return refined_question
-    else:
-        return question
+    
+    logger.info("--- Using original question for retrieval (no refinement based on history) ---")
+    logger.debug(f"--- Original Question: {question} ---")
+    
+    # Return the question as-is, ensuring focus on the user's current input
+    return question
 
 
 async def answer(llm: LamaCppClient, question: str, chat_history: ChatHistory, max_new_tokens: int = 512) -> Any:
     """
-    Generates an answer to the given question based on the chat history or a direct prompt.
+    Generates an answer to the given question focusing on the current question only.
 
     Args:
         llm (LlmClient): The language model client for conversation-related tasks.
         question (str): The input question for which an answer is generated.
         chat_history (List[Tuple[str, str]]): A list to store the conversation
-        history as tuples of questions and answers.
+        history (maintained for potential future use but NOT used to influence current answer).
         max_new_tokens (int, optional): The maximum number of tokens to generate in the answer.
             Defaults to 512.
 
@@ -68,32 +57,19 @@ async def answer(llm: LamaCppClient, question: str, chat_history: ChatHistory, m
         A streaming iterator (Any) for progressively generating the answer.
 
     Notes:
-        The method checks if there is existing chat history. If chat history is available,
-        it constructs a conversation-awareness prompt using the question and chat history.
-        The answer is then generated using the LLM with the conversation-awareness prompt.
-        If no chat history is available, a prompt is generated directly from the input question,
-        and the answer is generated accordingly.
+        The method generates a response based ONLY on the current question.
+        The chat_history parameter is maintained for backward compatibility and future use,
+        but the response is generated independently of previous messages to ensure the chatbot
+        responds to the user's current input without being influenced by prior questions.
     """
-
-    if chat_history:
-        logger.info("--- Answer the question based on the chat history... ---")
-
-        conversation_awareness_prompt = llm.generate_refined_answer_conversation_awareness_prompt(
-            question, str(chat_history)
-        )
-
-        logger.debug(f"--- Prompt:\n {conversation_awareness_prompt} \n---")
-
-        streamer = await llm.async_start_answer_iterator_streamer(
-            conversation_awareness_prompt, max_new_tokens=max_new_tokens
-        )
-
-        return streamer
-    else:
-        prompt = llm.generate_qa_prompt(question=question)
-        logger.debug(f"--- Prompt:\n {prompt} \n---")
-        streamer = await llm.async_start_answer_iterator_streamer(prompt, max_new_tokens=max_new_tokens)
-        return streamer
+    
+    logger.info("--- Answer the current question independently ---")
+    
+    # Generate answer based on CURRENT question only, ignoring chat history
+    prompt = llm.generate_qa_prompt(question=question)
+    logger.debug(f"--- Prompt:\n {prompt} \n---")
+    streamer = await llm.async_start_answer_iterator_streamer(prompt, max_new_tokens=max_new_tokens)
+    return streamer
 
 
 async def answer_with_context(

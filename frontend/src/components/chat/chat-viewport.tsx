@@ -47,7 +47,7 @@ function EmptyState() {
         {/* Welcome Text */}
         <div className="space-y-3">
           <h1 className="text-4xl font-bold text-foreground tracking-tight text-balance">
-            Welcome to Tourism Guide
+            Welcome to Tourism Guide AI
           </h1>
           <p className="text-muted-foreground text-lg leading-relaxed max-w-md mx-auto text-pretty">
             Your intelligent companion for discovering amazing destinations, exploring cultural treasures, and planning unforgettable journeys.
